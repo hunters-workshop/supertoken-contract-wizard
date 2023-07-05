@@ -75,6 +75,10 @@ input[type="number"] {
   display: flex;
   flex-direction: column;
 
+  &.is-disabled {
+    color: var(--gray-4);
+  }
+
   & > * {
     display: flex;
     align-items: center;

@@ -1,11 +1,9 @@
 <script lang="ts">
-  
   import type { KindedOptions } from '@openzeppelin/wizard';
   import { infoDefaults, premintPattern } from '@openzeppelin/wizard';
-  import { cappedSupertoken, pureSupertoken } from '@openzeppelin/wizard/src/api';
-  import { pureSupertokenDefaults } from '@openzeppelin/wizard/src/puretoken';
-  import { cappedSupertokenDefaults } from '@openzeppelin/wizard/src/capped-supertoken';
-  
+  import { cappedSupertoken } from '@openzeppelin/wizard/src/api';
+  import { cappedSupertokenDefaults } from '@openzeppelin/wizard/src/cappedtoken';
+
   import AccessControlSection from './AccessControlSection.svelte';
   import HelpTooltip from './HelpTooltip.svelte';
   import InfoSection from './InfoSection.svelte';
@@ -53,6 +51,15 @@
       Mintable
       <HelpTooltip>
         Privileged accounts will be able to create more supply.
+      </HelpTooltip>
+    </label>
+  </div>
+  <div class={`checkbox-group ${!opts.mintable && 'is-disabled'}`}>
+    <label class:checked={opts.ownable}>
+      <input type="checkbox" bind:checked={opts.ownable} disabled={!opts.mintable ?? true} >
+      Ownable (Modifier)
+      <HelpTooltip>
+        {!opts.mintable ? 'This is a modifier for the Mintable method. Please select Mintable first' : 'Only the owner will be able to mint the tokens'}.
       </HelpTooltip>
     </label>
   </div>

@@ -30,6 +30,7 @@ import {
   printGovernor,
 } from './governor';
 import { pureSupertokenDefaults, printPureSuperToken, type PureSuperTokenOptions } from './puretoken';
+import { cappedSupertokenDefaults, printCappedSuperToken, type CappedSuperTokenOptions } from './cappedtoken';
 
 export interface WizardContractAPI<Options extends CommonOptions> {
 	/**
@@ -53,6 +54,7 @@ export type ERC20 = WizardContractAPI<ERC20Options>;
 export type ERC721 = WizardContractAPI<ERC721Options>;
 export type ERC1155 = WizardContractAPI<ERC1155Options>;
 export type Governor = WizardContractAPI<GovernorOptions>;
+export type CappedSuperToken = WizardContractAPI<CappedSuperTokenOptions>;
 export type Custom = WizardContractAPI<CustomOptions>;
 
 export const pureSupertoken: PureSuperToken = {
@@ -79,6 +81,11 @@ export const governor: Governor = {
 	print: printGovernor,
 	defaults: governorDefaults,
 	isAccessControlRequired: governorIsAccessControlRequired,
+};
+export const cappedSupertoken: CappedSuperToken = {
+	print: printCappedSuperToken,
+	defaults: cappedSupertokenDefaults,
+	isAccessControlRequired: erc20IsAccessControlRequired,
 };
 export const custom: Custom = {
 	print: printCustom,

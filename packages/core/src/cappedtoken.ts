@@ -3,7 +3,7 @@ import { Contract, ContractBuilder } from './contract';
 import { printContract } from './print';
 import { setInfo } from './set-info';
 
-export interface PureSuperTokenOptions extends CommonOptions {
+export interface CappedSuperTokenOptions extends CommonOptions {
   name: string;
   symbol: string;
   initialSupply: number;
@@ -11,10 +11,11 @@ export interface PureSuperTokenOptions extends CommonOptions {
   mintable: boolean;
   burnable: boolean;
   capped: boolean;
+  ownable: boolean;
   maticBridge: boolean;
 }
 
-export const pureSupertokenDefaults: Required<PureSuperTokenOptions> = {
+export const cappedSupertokenDefaults: Required<CappedSuperTokenOptions> = {
   name: 'MyToken',
   symbol: 'MTK',
   initialSupply: 0,
@@ -25,23 +26,25 @@ export const pureSupertokenDefaults: Required<PureSuperTokenOptions> = {
   mintable: false,
   burnable: false,
   capped: false,
+  ownable: false,
   maticBridge: false,
 } as const;
 
-function withDefaults(opts: PureSuperTokenOptions): Required<PureSuperTokenOptions> {
+function withDefaults(opts: CappedSuperTokenOptions): Required<CappedSuperTokenOptions> {
   return {
     ...opts,
     ...withCommonDefaults(opts),
-    initialSupply: opts.initialSupply ?? pureSupertokenDefaults.initialSupply,
-    receiver: opts.receiver || pureSupertokenDefaults.receiver,
+    initialSupply: opts.initialSupply ?? cappedSupertokenDefaults.initialSupply,
+    receiver: opts.receiver || cappedSupertokenDefaults.receiver,
+    ownable: opts.ownable ?? cappedSupertokenDefaults.ownable,
   };
 }
 
-export function printPureSuperToken(opts: PureSuperTokenOptions = pureSupertokenDefaults): string {
-  return printContract(buildPureSuperToken(opts));
+export function printCappedSuperToken(opts: CappedSuperTokenOptions = cappedSupertokenDefaults): string {
+  return printContract(buildCappedSuperToken(opts));
 }
 
-export function buildPureSuperToken(opts: PureSuperTokenOptions): Contract {
+export function buildCappedSuperToken(opts: CappedSuperTokenOptions): Contract {
   const allOpts = withDefaults(opts);
 
   const c = new ContractBuilder(allOpts.name);
@@ -53,20 +56,12 @@ export function buildPureSuperToken(opts: PureSuperTokenOptions): Contract {
 
   setInfo(c, info);
 
-  if (allOpts.burnable) {
-    addBurnable(c)
-  }
-
   if (allOpts.mintable) {
     addMintable(c, allOpts.receiver, allOpts.initialSupply);
-  }
 
-  if (allOpts.capped) {
-
-  }
-
-  if (allOpts.maticBridge) {
-
+    if (allOpts.ownable) {
+      addOwnable(c);
+    }
   }
 
   return c;
@@ -74,8 +69,8 @@ export function buildPureSuperToken(opts: PureSuperTokenOptions): Contract {
 
 function addBase(c: ContractBuilder, name: string, symbol: string) {
   c.addParent({
-    name: 'SuperTokenBase',
-    path: '../custom-supertokens/contracts/PureSupertoken.sol',
+    name: 'CappedSuperTokenBase',
+    path: '../custom-supertokens/contracts/CappedSupertoken.sol',
   });
 
   c.addConstructorCode(`_initialize(factory, "${name}", "${symbol}");`);
@@ -89,6 +84,10 @@ function addBurnable(c: ContractBuilder, amount?: number, ) {
   c.addFunctionCode(`burn(${amount})`, functions.burn);
 }
 
+function addOwnable(c: ContractBuilder) {
+  c.addModifier(`onlyOwner`, functions.mint);
+}
+
 function addMintable(c: ContractBuilder, receiver: string, amount: number) {
   c.addFunctionCode(`mint(${receiver}, ${amount})`, functions.mint);
 }
@@ -99,6 +98,7 @@ function addCapped(c: ContractBuilder) {
     path: '@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol',
   });
 }
+
 
 function addMaticBridge(c: ContractBuilder) {
   c.addParent({
