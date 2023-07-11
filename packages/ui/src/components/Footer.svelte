@@ -1,0 +1,3 @@
+<footer>
+  <p>© <a href="https://docs.superfluid.finance/superfluid/developers/super-tokens" target="_blank" rel="noopener noreferrer">Superfluid</a> 2023 |&nbsp;<a href="https://www.iubenda.com/privacy-policy/34415583/legal" target="_blank" rel="noopener noreferrer">Privacy</a> |&nbsp;<a href="https://www.superfluid.finance/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a></p>
+</footer>

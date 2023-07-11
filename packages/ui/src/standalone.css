@@ -209,3 +209,11 @@ body .leadinModal.leadinModal-theme-top {
       opacity: 1;
     }
   }
+
+
+  ._toastItem {
+   drop-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.);
+  }
+  ._toastBar {
+    background-color: #4e5de4;
+  }

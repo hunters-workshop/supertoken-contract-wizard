@@ -51,7 +51,17 @@
   } from "./utils/contract-utils";
   import { chainName } from "./stores";
   import { ethers } from "ethers";
-  import { Toast } from 'flowbite-svelte';
+  import { clsx } from "clsx";
+  import { SvelteToast, toast } from "@zerodevx/svelte-toast";
+  // Optionally set default options here
+  const toastOptions = {
+    theme: {
+      "--toastBackground": "#000",
+      "--toastProgressBackground": "#444",
+      "--toastProgressFill": "#888",
+      "--toastColor": "#fff",
+    },
+  };
 
   configureWagmi({
     walletconnect: true,
@@ -104,6 +114,7 @@
     if (opts) {
       await postConfig(opts, "copy", language);
     }
+    toast.push("Copied to clipboard!");
     setTimeout(() => {
       copied = false;
     }, 1000);
@@ -154,13 +165,9 @@
     if (typeof data === "object") {
       data = JSON.stringify(data, null, 2);
     }
-    const copied = await navigator.clipboard.writeText(data);
+    await navigator.clipboard.writeText(data);
 
-    console.log("copied", copied);
-
-    // copyText(data);
-
-    alert("Copied to clipboard");
+      toast.push("Copied to clipboard!");
   };
 
   const downloadHardhatHandler = async () => {
@@ -217,7 +224,13 @@
       contractArtifacts = artifacts;
       compiling = false;
       compiled = artifacts !== undefined;
-
+      toast.push(`Compiled ${opts.name} contract successfully!`,
+      {
+        theme: {
+          '--toastBackground': '#4caf50',
+          '--toastColor': '#fff',
+        }
+      });
       setTimeout(() => {
         compiled = false;
       }, 2000);
@@ -227,6 +240,13 @@
       compiling = false;
       compiled = false;
       contractError = error;
+      toast.push(`Ru roh! Error compiling ${opts.name} contract!`,
+      {
+        theme: {
+          '--toastBackground': 'var(--color-red-500)',
+          '--toastColor': 'var(--color-white)',
+        }
+      });
       setTimeout(() => {
         erroring = false;
         contractError = undefined;
@@ -245,7 +265,7 @@
         bytecode: contractBytecode,
       };
       const deployedContractData = await deployContract(deployData);
-      const { contractAddress, success, error } = deployedContractData;
+      const { contractAddress, success, error, txHash } = deployedContractData;
 
       if (success) {
         deployedContractAddress = contractAddress;
@@ -253,6 +273,12 @@
           contractAddress,
           success,
           error,
+        });
+        toast.push(`Deployed contract successfully! ${deployedContractAddress} <br /> ${txHash}`, {
+          theme: {
+            '--toastBackground': '#4caf50',
+            '--toastColor': '#fff',
+          }
         });
       } else {
         throw new Error("Error deploying contract");
@@ -263,7 +289,13 @@
     } catch (error: any) {
       console.log("deployContractHandler error", { error });
       contractError = error.message;
-
+      toast.push(`Ru roh! Error deploying contract! check the console.log for more info.`,
+      {
+        theme: {
+          '--toastBackground': 'var(--color-red-500)',
+          '--toastColor': 'var(--color-white)',
+        }
+      });
       deploying = false;
       return;
     }
@@ -329,6 +361,7 @@
       <p>Web3Modal not yet available</p>
     {/if}
   </div>
+
   <div class="header flex flex-row justify-between">
     <div class="tab overflow-hidden">
       <OverflowMenu>
@@ -351,38 +384,42 @@
     </div>
 
     <div class="action flex flex-row gap-2 shrink-0">
+      <Tooltip let:trigger theme="border" hideOnClick={false} interactive>
       <button class="action-button min-w-[165px]" on:click={copyHandler}>
         {#if copied}
           <CheckIcon />
-          Copied
+          Copied Contract Code
         {:else}
           <CopyIcon />
-          Copy to Clipboard
+          Copy Contract Code
         {/if}
       </button>
+      <div slot="content">Copy the contract code.</div>
+      </Tooltip>
       <Tooltip let:trigger theme="border" hideOnClick={false} interactive>
         <button
           use:trigger
-          class={`action-button ${contractError ?? "text-red-500"}`}
+          class={clsx(
+            "action-button min-w-[165px] transition-colors",
+            contractError && "text-red-500",
+            compiled && "text-green-500"
+          )}
           on:click={compileContractHandler}
         >
           {#if compiling}
             <ProcessingIcon />
-            Compiling
+            Compiling contract
           {:else}
             <CompileIcon />
             Compile contract
           {/if}
         </button>
-        <div slot="content">
-          Compile this
-          contract.https://polygonscan.com/tx/0x2cf803ef1789562cca0dca1d24378767c535f549ec7ae7d7416bdcc2b6f659ce
-        </div>
+        <div slot="content">Compile this contract.</div>
       </Tooltip>
       <Tooltip let:trigger theme="border" hideOnClick={false} interactive>
         <button
           use:trigger
-          class="action-button"
+          class="action-button min-w-[165px]"
           on:click={() => contractArtifacts && handleCopy(contractArtifacts)}
           disabled={contractArtifacts === undefined}
         >
@@ -394,13 +431,16 @@
       <Tooltip let:trigger theme="border" hideOnClick={false} interactive>
         <button
           use:trigger
-          class="action-button"
+          class={clsx("action-button min-w-[165px]", {
+            "text-green-500": contractArtifacts && !deploying,
+            "text-red-500": contractError,
+          })}
           on:click={deployContractHandler}
           disabled={contractArtifacts === undefined}
         >
           {#if deploying}
             <ProcessingIcon />
-            Deploying
+            Deploying Contract
           {:else}
             <DeployIcon />
             Deploy Contract
@@ -517,26 +557,13 @@
   </div>
 </div>
 
-{#if erroring}
-<Toast>
-  <p class="text-red-500 text-sm text-center">
-    Error. Please check the console for details.
-  </p>
-</Toast>
-{/if}
-{#if compiled}
-<Toast simple contentClass="flex space-x-4 divide-x divide-gray-200 dark:divide-gray-700">
-  <svg aria-hidden="true" class="w-5 h-5 text-primary-600 dark:text-primary-500" focusable="false" data-prefix="fas" data-icon="paper-plane" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M511.6 36.86l-64 415.1c-1.5 9.734-7.375 18.22-15.97 23.05c-4.844 2.719-10.27 4.097-15.68 4.097c-4.188 0-8.319-.8154-12.29-2.472l-122.6-51.1l-50.86 76.29C226.3 508.5 219.8 512 212.8 512C201.3 512 192 502.7 192 491.2v-96.18c0-7.115 2.372-14.03 6.742-19.64L416 96l-293.7 264.3L19.69 317.5C8.438 312.8 .8125 302.2 .0625 289.1s5.469-23.72 16.06-29.77l448-255.1c10.69-6.109 23.88-5.547 34 1.406S513.5 24.72 511.6 36.86z"></path></svg>
-  <div class="pl-4 text-sm font-normal">{`${opts?.name} successfully compiled.`}</div>
-</Toast>
-{/if}
-{#if deployedContractAddress !== undefined}
-  <p class="text-green-500 text-sm text-center">
-    {`${opts?.name} successfully deployed at ${deployedContractAddress}.`}
-  </p>
-{/if}
+<SvelteToast options={toastOptions} />
 
 <style lang="postcss">
+  :root {
+    --toastFontSize: 0.8rem;
+  }
+
   .container {
     background-color: var(--gray-1);
     border: 1px solid var(--gray-2);
@@ -591,6 +618,7 @@
     cursor: pointer;
     display: inline-flex;
     align-items: center;
+    text-transform: capitalize;
 
     &:hover {
       background-color: var(--gray-2);

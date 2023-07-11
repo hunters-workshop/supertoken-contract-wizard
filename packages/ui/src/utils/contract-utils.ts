@@ -22,7 +22,9 @@ export interface DeployContractProps {
 
 export interface DeployContractResponse {
   contractAddress: string;
+  txHash?: string;
   success: boolean;
+  error?: string;
 }
 
 /**
@@ -71,6 +73,7 @@ export const deployContract = async (deployData: DeployContractProps) => {
 
       return {
         contractAddress,
+        txHash: tx.transactionHash,
         success: true
       };
     } else {
