@@ -33,7 +33,7 @@
       </label>
     </div>
 
-    <label class="labeled-input">
+    <!-- <label class="labeled-input">
       <span class="flex justify-between pr-2">
         Premint
         <HelpTooltip>Create an initial amount of tokens for the deployer.</HelpTooltip>
@@ -47,10 +47,10 @@
         <HelpTooltip>Create an initial receiver.</HelpTooltip>
       </span>
       <input bind:value={opts.receiver}>
-    </label>
+    </label> -->
 </section>
 
-<section class="controls-section">
+<!-- <section class="controls-section">
   <h2>Features</h2>
 
   <div class="checkbox-group">
@@ -62,9 +62,9 @@
       </HelpTooltip>
     </label>
   </div>
-</section>
+</section> -->
 
-<AccessControlSection bind:access={opts.access} required={requireAccessControl} />
+<!-- <AccessControlSection bind:access={opts.access} required={requireAccessControl} /> -->
 
 <UpgradeabilitySection bind:upgradeable={opts.upgradeable} />
 

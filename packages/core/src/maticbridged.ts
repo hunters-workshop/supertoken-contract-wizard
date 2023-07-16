@@ -51,25 +51,15 @@ export function buildMaticBridgedSuperToken(opts: MaticBridgedSuperTokenOptions)
 
   const { access, info } = allOpts;
 
-  addBase(c, allOpts.name, allOpts.symbol);
-
   setInfo(c, info);
 
-  if (allOpts.mintable) {
-    addMintable(c);
-  }
+  addBase(c, allOpts.name, allOpts.symbol);
 
-  if (allOpts.initialSupply > 0) {
-    addPremint(c, allOpts.receiver, allOpts.initialSupply);
-  }
+  addDeposit(c);
 
-  if (access === 'ownable') {
-    addOwnable(c);
-  }
+  addWithdraw(c);
 
-  if (access === 'roles') {
-    addRoles(c);
-  }
+  addUpdateChildChainManager(c);
 
   return c;
 }
@@ -80,49 +70,51 @@ function addBase(c: ContractBuilder, name: string, symbol: string) {
     path: 'github.com/superfluid-finance/custom-supertokens/contracts/base/SuperTokenBase.sol',
   });
 
+  c.addParent({
+    name: "IMaticBridgedSuperToken",
+    path: "github.com/superfluid-finance/custom-supertokens/contracts/interfaces/IMaticBridgedSuperToken.sol",
+  });
+
+  c.addVariable(`address public childChainManager;`)
+
+  c.addConstructorArgument({type: 'address', name: 'childChainManager_'});
+  c.addConstructorCode(`childChainManager = childChainManager_;`),
+
   c.addFunctionCode(`_initialize(factory, name, symbol);`, functions.initialize);
 }
 
-function addPremint(c: ContractBuilder, receiver: string, initialSupply: number, userData?: string) {
-  const amount = initialSupply.toString();
-  const m = amount.match(premintPattern);
-  if (m) {
-    const integer = m[1]?.replace(/^0+/, '') ?? '';
-    const decimals = m[2]?.replace(/0+$/, '') ?? '';
-    const exponent = Number(m[3] ?? 0);
+function addDeposit(c: ContractBuilder) {
+  c.addFunctionCode(`require(msg.sender == childChainManager, "MBST: no permission to deposit");`, functions.deposit);
+  c.addFunctionCode(`uint256 amount = abi.decode(depositData, (uint256));`, functions.deposit);
+  // c.addFunctionCode(`deposit(user, depositData);`, functions.deposit);
 
-    if (Number(integer + decimals) > 0) {
-      const decimalPlace = decimals.length - exponent;
-      const zeroes = new Array(Math.max(0, -decimalPlace)).fill('0').join('');
-      const units = integer + decimals + zeroes;
-      const exp = decimalPlace <= 0 ? '18' : `(18 - ${decimalPlace})`;
-      c.addFunctionCode(`_mint(msg.sender, ${units} * 10 ** ${exp}, ${userData ?? '""'});`, functions.initialize);
-    }
-  }
+
+
+  c.addFunctionCode(`ISuperToken(address(this)).selfMint(user, amount, new bytes(0));`, functions.deposit);
+
 }
 
-function addMintable(c: ContractBuilder) {
-  c.addFunctionCode(`mint(receiver, amount, "");`, functions.mint);
+function addWithdraw(c: ContractBuilder) {
+  // c.addParent({
+  //   name: "ISuperToken",
+  //   path: "github.com/superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol",
+  // });
+  c.addFunctionCode(`ISuperToken(address(this)).selfBurn(amount, new bytes(0));`, functions.withdraw);
 }
 
-function addOwnable(c: ContractBuilder) {
-  c.addParent({
-    name: 'Ownable',
-    path: '@openzeppelin/contracts/access/Ownable.sol',
-  });
-  c.addModifier(`onlyOwner`, functions.mint);
-}
+function addUpdateChildChainManager(c: ContractBuilder) {
+  c.addFunctionCode(`address host = ISuperToken(address(this)).getHost();`, functions.updateChildChainManager);
 
-function addRoles(c: ContractBuilder) {
-  c.addVariable(`bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");`)
-  c.addParent({
-    name: 'AccessControl',
-    path: '@openzeppelin/contracts/access/AccessControl.sol',
-  });
-  c.addModifier(`onlyRole(MINTER_ROLE)`, functions.mint);
+  // c.addParent({
+  //   name: "ISuperfluid",
+  //   path: "github.com/superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol",
+  // });
 
-  c.addConstructorCode(`_setupRole(DEFAULT_ADMIN_ROLE, msg.sender);`);
-  c.addConstructorCode(`_setupRole(MINTER_ROLE, msg.sender);`);
+  c.addFunctionCode(`address gov = address(ISuperfluid(host).getGovernance());`, functions.updateChildChainManager)
+  c.addFunctionCode(`require(msg.sender == gov, "MBST: only governance allowedr");\n`, functions.updateChildChainManager);
+
+  c.addFunctionCode(`childChainManager = newChildChainManager;`, functions.updateChildChainManager);
+  c.addFunctionCode(`emit ChildChainManagerChanged(newChildChainManager);`, functions.updateChildChainManager);
 }
 
 //wtf
@@ -136,22 +128,26 @@ export const functions = {
       { name: 'symbol', type: 'string memory' },
     ]
   },
-  _mint: {
-    kind: 'internal' as const,
-    name: '_mint',
+  deposit: {
+    kind: 'external' as const,
+    name: 'deposit',
     args: [
-      { name: 'receiver', type: 'address' },
-      { name: 'amount', type: 'uint256' },
-      { name: 'data', type: 'bytes' },
+      { name: 'user', type: 'address' },
+      { name: 'depositData', type: 'bytes calldata' },
     ],
   },
-  mint: {
+  withdraw: {
     kind: 'external' as const,
-    name: 'mint',
+    name: 'withdraw',
     args: [
-      { name: 'receiver', type: 'address' },
       { name: 'amount', type: 'uint256' },
-      { name: 'userData', type: 'bytes' },
+    ]
+  },
+  updateChildChainManager: {
+    kind: 'external' as const,
+    name: 'updateChildChainManager',
+    args: [
+      { name: 'newChildChainManager', type: 'address' },
     ]
   },
 };
