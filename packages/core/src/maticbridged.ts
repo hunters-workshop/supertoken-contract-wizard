@@ -49,7 +49,7 @@ export function buildMaticBridgedSuperToken(opts: MaticBridgedSuperTokenOptions)
 
   const c = new ContractBuilder(allOpts.name);
 
-  const { access, info } = allOpts;
+  const { info } = allOpts;
 
   setInfo(c, info);
 
@@ -105,10 +105,16 @@ function addWithdraw(c: ContractBuilder) {
 function addUpdateChildChainManager(c: ContractBuilder) {
   c.addFunctionCode(`address host = ISuperToken(address(this)).getHost();`, functions.updateChildChainManager);
 
-  // c.addParent({
-  //   name: "ISuperfluid",
-  //   path: "github.com/superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol",
-  // });
+  /*
+   TO DO / TODO: I can't figure out how to import `ISuperfluid` without
+    it getting added to the contract declaration. I expected
+    to have an `addImport` function, but I don't see one.
+   */
+  c.addParent({
+    name: "ISuperfluid",
+    path: "github.com/superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol",
+  });
+
 
   c.addFunctionCode(`address gov = address(ISuperfluid(host).getGovernance());`, functions.updateChildChainManager)
   c.addFunctionCode(`require(msg.sender == gov, "MBST: only governance allowedr");\n`, functions.updateChildChainManager);
