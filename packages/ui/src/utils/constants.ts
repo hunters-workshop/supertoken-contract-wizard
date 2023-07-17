@@ -49,6 +49,31 @@ const NETWORK_CONTRACTS_MAP: NetworkContractsMap = {
     contract: FACTORY_CONTRACT_MAP[NetworkId.Polygon]!,
     blockExplorer: 'https://polygonscan.com',
   },
+  [NetworkId.Optimism]: {
+    name: NETWORK_MAP[NetworkId.Optimism]!,
+    contract: FACTORY_CONTRACT_MAP[NetworkId.Optimism]!,
+    blockExplorer: 'https://optimistic.etherscan.io',
+  },
+  [NetworkId.Arbitrum]: {
+    name: NETWORK_MAP[NetworkId.Arbitrum]!,
+    contract: FACTORY_CONTRACT_MAP[NetworkId.Arbitrum]!,
+    blockExplorer: 'https://arbiscan.io',
+  },
+  [NetworkId.Avalanche]: {
+    name: NETWORK_MAP[NetworkId.Avalanche]!,
+    contract: FACTORY_CONTRACT_MAP[NetworkId.Avalanche]!,
+    blockExplorer: 'https://cchain.explorer.avax.network',
+  },
+  [NetworkId.BinanceSmartChain]: {
+    name: NETWORK_MAP[NetworkId.BinanceSmartChain]!,
+    contract: FACTORY_CONTRACT_MAP[NetworkId.BinanceSmartChain]!,
+    blockExplorer: 'https://bscscan.com',
+  },
+  [NetworkId.Celo]: {
+    name: NETWORK_MAP[NetworkId.Celo]!,
+    contract: FACTORY_CONTRACT_MAP[NetworkId.Celo]!,
+    blockExplorer: 'https://explorer.celo.org',
+  },
 };
 
 export {
