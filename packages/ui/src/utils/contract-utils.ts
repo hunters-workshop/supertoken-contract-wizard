@@ -1,7 +1,5 @@
-import type { Contract } from '@superfluid-wizard/core';
 import { ethers } from 'ethers';
-import { BACKEND_URL, NETWORK_CONTRACTS_MAP, NetworkId } from './constants';
-import {chainId} from "svelte-wagmi";
+import { BACKEND_URL, NETWORK_CONTRACTS_MAP } from './constants';
 
 export const initializeData = {
   contractAddress: '',
