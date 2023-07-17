@@ -75,6 +75,11 @@ function addBase(c: ContractBuilder, name: string, symbol: string) {
     path: "github.com/superfluid-finance/custom-supertokens/contracts/interfaces/IMaticBridgedSuperToken.sol",
   });
 
+  c.addParent({
+    name: "ISuperToken",
+    path: "github.com/superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol",
+  })
+
   c.addVariable(`address public childChainManager;`)
 
   c.addConstructorArgument({type: 'address', name: 'childChainManager_'});
