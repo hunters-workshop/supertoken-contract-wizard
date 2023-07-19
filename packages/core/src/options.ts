@@ -28,6 +28,7 @@ export interface Helpers extends Required<Options> {
   upgradeable: boolean;
   transformName: (name: string) => string;
   transformVariable: (code: string) => string;
+  omitAll: boolean;
 }
 
 export function withHelpers(contract: Contract, opts: Options = {}): Helpers {
@@ -41,5 +42,6 @@ export function withHelpers(contract: Contract, opts: Options = {}): Helpers {
       return opts.transformImport?.(p2) ?? p2;
     },
     transformVariable: v => v.replace(/[A-Z]\w*(?=\.|$)/, transformName),
+    omitAll: contract.omitAll,
   };
 }

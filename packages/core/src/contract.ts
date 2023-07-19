@@ -12,6 +12,7 @@ export interface Contract {
   constructorArgs: FunctionArgument[];
   variables: string[];
   upgradeable: boolean;
+  omitAll: boolean;
 }
 
 export type Value = string | number | { lit: string } | { note: string, value: Value };
@@ -73,6 +74,7 @@ export class ContractBuilder implements Contract {
   readonly name: string;
   license: string = 'MIT';
   upgradeable = false;
+  omitAll = false;
 
   readonly using: Using[] = [];
   readonly natspecTags: NatspecTag[] = [];
@@ -118,6 +120,8 @@ export class ContractBuilder implements Contract {
   addParent(contract: ParentContract, params: Value[] = []): boolean {
     const present = this.parentMap.has(contract.name);
     this.parentMap.set(contract.name, { contract, params });
+    console.log(`Added parent ${contract.name} to ${this.name}`, { present });
+
     return !present;
   }
 

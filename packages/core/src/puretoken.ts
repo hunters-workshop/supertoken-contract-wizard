@@ -76,7 +76,7 @@ export function buildPureSuperToken(opts: PureSuperTokenOptions): Contract {
   }
 
   if (access === 'roles') {
-    addRoles(c);
+    addRoles(c, allOpts);
   }
 
   return c;
@@ -127,20 +127,30 @@ function addOwnable(c: ContractBuilder) {
   c.addModifier(`onlyOwner`, functions.mint);
 }
 
-function addRoles(c: ContractBuilder) {
+function addRoles(c: ContractBuilder, opts: PureSuperTokenOptions) {
   c.addVariable(`bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");`);
-  c.addVariable(`bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");`);
+
+  if (opts.burnable) {
+    c.addVariable(`bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");`);
+  }
+
   c.addParent({
     name: 'AccessControl',
     path: '@openzeppelin/contracts/access/AccessControl.sol',
   });
 
-  c.addModifier(`onlyMinter`, functions.mint);
-  c.addModifier(`onlyBurner`, functions.burn);
+  c.addFunctionCode(`require(hasRole(MINTER_ROLE, msg.sender), "SuperToken: must have minter role to mint");`, functions.mint);
+
+  if (opts.burnable) {
+    c.addFunctionCode(`require(hasRole(BURNER_ROLE, msg.sender), "SuperToken: must have burner role to burn");`, functions.burn);
+  }
 
   c.addConstructorCode(`_setupRole(DEFAULT_ADMIN_ROLE, msg.sender);`);
   c.addConstructorCode(`_setupRole(MINTER_ROLE, msg.sender);`);
-  c.addConstructorCode(`_setupRole(BURNER_ROLE, msg.sender);`);
+
+  if (opts.burnable) {
+    c.addConstructorCode(`_setupRole(BURNER_ROLE, msg.sender);`);
+  }
 }
 
 
