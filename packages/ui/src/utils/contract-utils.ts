@@ -22,6 +22,8 @@ export interface CompileContractProps {
 export interface DeployContractProps {
   abi: Record<string, any> | string | any;
   bytecode: string;
+  signerAddress?: string;
+  omit?: boolean;
 }
 
 export interface DeployContractResponse {
@@ -46,7 +48,12 @@ export const deployContract = async (deployData: DeployContractProps) => {
 
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
-
+    deployData = {
+      ...deployData,
+      signerAddress: signer ? await signer.getAddress() : undefined,
+    };
+    // console.log('deployData', deployData);
+    // debugger;
     const response = await fetch(`${BACKEND_URL}/deploy`, {
       method: 'POST',
       headers: {
@@ -55,25 +62,17 @@ export const deployContract = async (deployData: DeployContractProps) => {
       body: JSON.stringify(deployData)
     });
     const resData = await response.json();
-    // console.log('deploy response', {response, resData});
-    // debugger;
-    // const address = await signer.getAddress();
     const gasLimit = 3000000;
-    // this brings up MM but tx fails
     const transactionRequest = { data: resData.transactionData, gasLimit };
     const transactionResponse = await signer.sendTransaction(transactionRequest);
 
-    const tx = await transactionResponse.wait(); // Wait for transaction to be mined
+    const tx = await transactionResponse.wait(4); // Wait for transaction to be mined
     console.log('transactionResponse', transactionResponse);
 
-    // if (transactionResponse.hash === null) {
-    //   throw new Error('Transaction failed');
-    // }
     console.log(initializeData, 'test 1')
     if (tx.transactionHash !== undefined) {
       const receipt = await provider.getTransactionReceipt(tx.transactionHash);
       const contractAddress = receipt.contractAddress as string;
-      // console.log('contract deployed to', contractAddress);
       initializeData.contractAddress = contractAddress;
 
       return {
@@ -99,11 +98,18 @@ export const deployContract = async (deployData: DeployContractProps) => {
 /**
  * Reformats the Solidity code to be compatible with the Solidity compiler
  * @param code
- * @returns code with solidity version changed and import format changed
+ * @returns code with solidity version and import format changed
  */
-export function adjustSolidityCode(code: string) {
+export function adjustSolidityCode(code: string, omit?: boolean) {
   // Change the Solidity version
   code = code.replace(/^pragma solidity [^;]+;/m, 'pragma solidity ^0.8.0;');
+
+  if (omit) {
+    // only change the reference to 'github.com/' to '@' and not the import format
+    code = code.replace(/github.com\//g, '@');
+
+    return code;
+  }
 
   // Change the import format and replace github.com/ with @
   code = code.replace(/import "([^"]+)\/([^/]+)\.sol";/g, function (_, path, contractName) {
@@ -123,12 +129,11 @@ export function adjustSolidityCode(code: string) {
  * @param contractData
  * @returns {CompileContractResponse} { abi: string; bytecode: string;  success: boolean;  error?: string;}
  */
-export const compileContract = async (compileData: CompileContractProps): Promise<CompileContractResponse> => {
+export const compileContract = async (compileData: CompileContractProps, omit: boolean): Promise<CompileContractResponse> => {
   const { contractData, contractName } = compileData;
-  console.log('compileContract() compileData...', { contractData, contractName });
 
   try {
-    const reformattedContract = adjustSolidityCode(contractData)
+    const reformattedContract = adjustSolidityCode(contractData, omit);
 
     // Send the contract name and data to your /compile endpoint at the backend
     const response = await fetch(`${BACKEND_URL}/compile`, {
@@ -174,17 +179,17 @@ export const compileContract = async (compileData: CompileContractProps): Promis
 export const initializeContract = async (opts: any, chainId: number) => {
   if (!initializeData.contractAddress || !initializeData.initializeABI) return;
   try {
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
-  console.log({provider});
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    console.log({provider});
 
-  const factoryAddress = NETWORK_CONTRACTS_MAP[chainId ?? 1]?.contract;
-  const signer = provider.getSigner();
-  const supertoken = new ethers.Contract(initializeData.contractAddress, initializeData.initializeABI, signer);
-  console.log(supertoken, 'supertoken')
-  console.log(factoryAddress, 'factoryAddress');
+    const factoryAddress = NETWORK_CONTRACTS_MAP[chainId ?? 1]?.contract;
+    const signer = provider.getSigner();
+    const supertoken = new ethers.Contract(initializeData.contractAddress, initializeData.initializeABI, signer);
+    console.log(supertoken, 'supertoken')
+    console.log(factoryAddress, 'factoryAddress');
 
-    //TO DO: DYNAMICALLY FETCH THE supertokenfactory ADDRESS FOR CHAIN WHICH YOU ARE DEPLOYING ON AND PASS IT IN THE FIRST PARAMETER
     const tx = await supertoken.initialize(factoryAddress, opts.name, opts.symbol);
+    console.log(tx, 'tx');
     return tx;
   } catch (error: any) {
     console.log('initializeContract', error.message);

@@ -42,7 +42,7 @@ const NETWORK_CONTRACTS_MAP: NetworkContractsMap = {
   [NetworkId.GnosisChain]: {
     name: NETWORK_MAP[NetworkId.GnosisChain]!,
     contract: FACTORY_CONTRACT_MAP[NetworkId.GnosisChain]!,
-    blockExplorer: 'https://gnosisscan.io',
+    blockExplorer: 'https://gnosis.blockscout.com',
   },
   [NetworkId.Polygon]: {
     name: NETWORK_MAP[NetworkId.Polygon]!,

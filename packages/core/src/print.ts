@@ -9,6 +9,7 @@ import SOLIDITY_VERSION from './solidity-version.json';
 
 export function printContract(contract: Contract, opts?: Options): string {
   const helpers = withHelpers(contract, opts);
+  console.log('printContract', { helpers, contract, opts  });
 
   const fns = mapValues(
     sortedFunctions(contract),
@@ -16,6 +17,17 @@ export function printContract(contract: Contract, opts?: Options): string {
   );
 
   const hasOverrides = fns.override.some(l => l.length > 0);
+
+  if (contract.omitAll ) {
+    console.log('Omitting all');
+    return formatLines(
+      ...spaceBetween(
+        [
+            contract.variables.map(helpers.transformVariable),
+        ],
+      ),
+    );
+  }
 
   return formatLines(
     ...spaceBetween(

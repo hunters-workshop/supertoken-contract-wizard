@@ -2,7 +2,7 @@ import { CommonOptions, defaults as commonDefaults, withCommonDefaults } from '.
 import { Contract, ContractBuilder } from './contract';
 import { premintPattern } from './erc20';
 import { printContract } from './print';
-import { setInfo } from './set-info';
+import { Info, setInfo } from './set-info';
 
 export interface MaticBridgedSuperTokenOptions extends CommonOptions {
   name: string;
@@ -51,81 +51,59 @@ export function buildMaticBridgedSuperToken(opts: MaticBridgedSuperTokenOptions)
 
   const { info } = allOpts;
 
-  setInfo(c, info);
+  c.omitAll = true;
 
-  addBase(c, allOpts.name, allOpts.symbol);
-
-  addDeposit(c);
-
-  addWithdraw(c);
-
-  addUpdateChildChainManager(c);
+  addFullCode(c, allOpts.name, allOpts.symbol, info);
 
   return c;
 }
 
-function addBase(c: ContractBuilder, name: string, symbol: string) {
-  c.addParent({
-    name: 'SuperTokenBase',
-    path: 'github.com/superfluid-finance/custom-supertokens/contracts/base/SuperTokenBase.sol',
-  });
+function addFullCode(c: ContractBuilder, name: string, symbol: string, info: Info) {
+  const { securityContact, license } = info;
+  const hasContact = !!securityContact;
 
-  c.addParent({
-    name: "IMaticBridgedSuperToken",
-    path: "github.com/superfluid-finance/custom-supertokens/contracts/interfaces/IMaticBridgedSuperToken.sol",
-  });
+  c.addVariable(
+`/* SPDX-License-Identifier: ${license} */
+pragma solidity ^0.8.9;
+${hasContact ? '\n/// @custom:security-contact ' + securityContact : ''}
 
-  c.addParent({
-    name: "ISuperToken",
-    path: "github.com/superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol",
-  })
+import { SuperTokenBase, ISuperToken } from "github.com/superfluid-finance/custom-supertokens/contracts/base/SuperTokenBase.sol";
+import { IMaticBridgedSuperTokenCustom } from "github.com/superfluid-finance/custom-supertokens/contracts/interfaces/IMaticBridgedSuperToken.sol";
+import { ISuperfluid } from "github.com/superfluid-finance/protocol-monorepo/packages/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
-  c.addVariable(`address public childChainManager;`)
+contract ${name} is SuperTokenBase, IMaticBridgedSuperTokenCustom {
+    address public childChainManager;
 
-  c.addConstructorArgument({type: 'address', name: 'childChainManager_'});
-  c.addConstructorCode(`childChainManager = childChainManager_;`),
+    constructor(address childChainManager_) {
+        childChainManager = childChainManager_;
+    }
 
-  c.addFunctionCode(`_initialize(factory, name, symbol);`, functions.initialize);
+    function initialize(address factory, string memory name, string memory symbol)
+        external
+    {
+        _initialize(factory, name, symbol);
+    }
+
+    function deposit(address user, bytes calldata depositData) external override {
+        require(msg.sender == childChainManager, "MBST: no permission to deposit");
+        uint256 amount = abi.decode(depositData, (uint256));
+        ISuperToken(address(this)).selfMint(user, amount, new bytes(0));
+    }
+
+    function withdraw(uint256 amount) external override {
+        ISuperToken(address(this)).selfBurn(msg.sender, amount, new bytes(0));
+    }
+
+    function updateChildChainManager(address newChildChainManager) external override {
+        address host = ISuperToken(address(this)).getHost();
+        address gov = address(ISuperfluid(host).getGovernance());
+        require(msg.sender == gov, "MBST: only governance allowedr");
+
+        childChainManager = newChildChainManager;
+        emit ChildChainManagerChanged(newChildChainManager);
+    }
 }
-
-function addDeposit(c: ContractBuilder) {
-  c.addFunctionCode(`require(msg.sender == childChainManager, "MBST: no permission to deposit");`, functions.deposit);
-  c.addFunctionCode(`uint256 amount = abi.decode(depositData, (uint256));`, functions.deposit);
-  // c.addFunctionCode(`deposit(user, depositData);`, functions.deposit);
-
-
-
-  c.addFunctionCode(`ISuperToken(address(this)).selfMint(user, amount, new bytes(0));`, functions.deposit);
-
-}
-
-function addWithdraw(c: ContractBuilder) {
-  // c.addParent({
-  //   name: "ISuperToken",
-  //   path: "github.com/superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol",
-  // });
-  c.addFunctionCode(`ISuperToken(address(this)).selfBurn(amount, new bytes(0));`, functions.withdraw);
-}
-
-function addUpdateChildChainManager(c: ContractBuilder) {
-  c.addFunctionCode(`address host = ISuperToken(address(this)).getHost();`, functions.updateChildChainManager);
-
-  /*
-   TO DO / TODO: I can't figure out how to import `ISuperfluid` without
-    it getting added to the contract declaration. I expected
-    to have an `addImport` function, but I don't see one.
-   */
-  c.addParent({
-    name: "ISuperfluid",
-    path: "github.com/superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol",
-  });
-
-
-  c.addFunctionCode(`address gov = address(ISuperfluid(host).getGovernance());`, functions.updateChildChainManager)
-  c.addFunctionCode(`require(msg.sender == gov, "MBST: only governance allowedr");\n`, functions.updateChildChainManager);
-
-  c.addFunctionCode(`childChainManager = newChildChainManager;`, functions.updateChildChainManager);
-  c.addFunctionCode(`emit ChildChainManagerChanged(newChildChainManager);`, functions.updateChildChainManager);
+  `);
 }
 
 //wtf

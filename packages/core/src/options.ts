@@ -28,6 +28,7 @@ export interface Helpers extends Required<Options> {
   upgradeable: boolean;
   transformName: (name: string) => string;
   transformVariable: (code: string) => string;
+  omitAll: boolean;
 }
 
 export function withHelpers(contract: Contract, opts: Options = {}): Helpers {

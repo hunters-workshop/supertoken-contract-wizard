@@ -124,8 +124,7 @@
 
   let copied = false;
   const copyHandler = async () => {
-    console.log("opts upgadeable:", opts?.upgradeable);
-    console.log("networkData", { networkData, chainId, FACTORY_CONTRACT_MAP, NETWORK_MAP, NETWORK_CONTRACTS_MAP});
+    console.log("compileContractHandler", { contract });
     await navigator.clipboard.writeText(code);
     copied = true;
     if (opts) {
@@ -212,13 +211,14 @@
 
   const compileContractHandler = async (): Promise<void> => {
     if (!opts) return;
+
     const compileData: CompileContractProps = {
       contractData: code,
       contractName: opts.name,
     };
-
+    const { omitAll } = contract;
     compiling = true;
-    const compiledData = await compileContract(compileData);
+    const compiledData = await compileContract(compileData, omitAll);
 
     const { abi, bytecode, artifacts, success, error } = compiledData;
 
@@ -254,10 +254,14 @@
     try {
       if (!contractAbi || !contractBytecode) return;
       deploying = true;
+
+      const { omitAll } = contract;
       const deployData: DeployContractProps = {
         abi: contractAbi,
         bytecode: contractBytecode,
+        omit: omitAll,
       };
+
       const deployedContractData = await deployContract(deployData);
       const { contractAddress, success, error, txHash } = deployedContractData;
 
@@ -269,7 +273,7 @@
           error,
         });
         successToast(
-          `<strong>Deployed contract successfully!</strong> <br> Contract: <a href="${NETWORK_CONTRACTS_MAP[$chainId ?? 1]?.blockExplorer}/address/${deployedContractAddress}" target="_blank" ref="noreferrer">${deployedContractAddress}</a> <br> Tx: <a href="${NETWORK_CONTRACTS_MAP[$chainId ?? 1]?.blockExplorer}/tx/${txHash}" target="_blank" ref="noreferrer">${txHash}</a>`
+          `<strong>Deployed contract successfully!</strong> <br> Contract: ${shortenAddress(deployedContractAddress)}<a href="${NETWORK_CONTRACTS_MAP[$chainId ?? 1]?.blockExplorer}/address/${deployedContractAddress}" target="_blank" ref="noreferrer">View on Blockscout</a> <br> Tx hash: ${shortenAddress(txHash)} <a href="${NETWORK_CONTRACTS_MAP[$chainId ?? 1]?.blockExplorer}/tx/${txHash}" target="_blank" ref="noreferrer">View on Blockscout</a>`
         );
       }
       deploying = false;
@@ -293,7 +297,7 @@
       const initialized = await initializeContract(opts, $chainId as number);
 
       if (initialized) {
-        successToast(`<strong>Initialized contract successfully!</strong> <br> <a href="${NETWORK_CONTRACTS_MAP[$chainId ?? 1]?.blockExplorer}/address/${initialized.address}" target="_blank" ref="noreferrer">${initialized.address}</a>`);
+        successToast(`<strong>Initialized contract successfully!</strong> <br> Tx hash: ${shortenAddress(initialized.hash)} <a href="${NETWORK_CONTRACTS_MAP[$chainId ?? 1]?.blockExplorer}/tx/${initialized.hash}" target="_blank" ref="noreferrer">View on Blockscout</a>`);
         console.log("initContractHandler initialized...", { initialized });
         initializing = false;
         return initialized;
@@ -312,7 +316,7 @@
 
 <div class="container flex flex-col gap-8 p-4">
   <div class="flex items-center justify-between gap-4">
-    <!-- <p>{BACKEND_URL}</p> -->
+    <p>{BACKEND_URL}</p>
     {#if $wagmiLoaded}
       <div>
         <p class="font-bold">@wagmi/core status</p>
