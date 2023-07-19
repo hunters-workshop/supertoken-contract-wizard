@@ -411,12 +411,12 @@
         >
           Capped
         </button>
-       <!--  <button
+        <button
           class:selected={tab === "MaticBridged"}
           on:click={() => (tab = "MaticBridged")}
         >
           MaticBridged
-        </button> -->
+        </button>
       </OverflowMenu>
     </div>
 
