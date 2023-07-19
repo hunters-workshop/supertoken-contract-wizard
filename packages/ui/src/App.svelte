@@ -317,7 +317,7 @@
 
 <div class="container flex flex-col gap-8 p-4">
   <div class="flex items-center justify-between gap-4">
-    <p>{BACKEND_URL}</p>
+    <!-- <p>{BACKEND_URL}</p> -->
     {#if $wagmiLoaded}
       <div>
         <p class="font-bold">@wagmi/core status</p>
