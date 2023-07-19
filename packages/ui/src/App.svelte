@@ -273,7 +273,8 @@
           error,
         });
         successToast(
-          `<strong>Deployed contract successfully!</strong> <br> Contract: ${shortenAddress(deployedContractAddress)}<a href="${NETWORK_CONTRACTS_MAP[$chainId ?? 1]?.blockExplorer}/address/${deployedContractAddress}" target="_blank" ref="noreferrer">View on Blockscout</a> <br> Tx hash: ${shortenAddress(txHash)} <a href="${NETWORK_CONTRACTS_MAP[$chainId ?? 1]?.blockExplorer}/tx/${txHash}" target="_blank" ref="noreferrer">View on Blockscout</a>`
+          `<strong>Deployed contract successfully!</strong>
+          <br>Contract: ${shortenAddress(deployedContractAddress)}${' '} <a href="${NETWORK_CONTRACTS_MAP[$chainId ?? 1]?.blockExplorer}/address/${deployedContractAddress}" target="_blank" ref="noreferrer">View on Blockscout</a> <br> Tx hash: ${shortenAddress(txHash)} <a href="${NETWORK_CONTRACTS_MAP[$chainId ?? 1]?.blockExplorer}/tx/${txHash}" target="_blank" ref="noreferrer">View on Blockscout</a>`
         );
       }
       deploying = false;

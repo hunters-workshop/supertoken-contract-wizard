@@ -42,5 +42,6 @@ export function withHelpers(contract: Contract, opts: Options = {}): Helpers {
       return opts.transformImport?.(p2) ?? p2;
     },
     transformVariable: v => v.replace(/[A-Z]\w*(?=\.|$)/, transformName),
+    omitAll: contract.omitAll,
   };
 }

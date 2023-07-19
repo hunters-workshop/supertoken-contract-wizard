@@ -2,7 +2,7 @@ import { CommonOptions, defaults as commonDefaults, withCommonDefaults } from '.
 import { Contract, ContractBuilder } from './contract';
 import { premintPattern } from './erc20';
 import { printContract } from './print';
-import { Info, setInfo } from './set-info';
+import type { Info } from './set-info';
 
 export interface MaticBridgedSuperTokenOptions extends CommonOptions {
   name: string;
