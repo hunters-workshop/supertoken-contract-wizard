@@ -74,6 +74,7 @@
     changeNetwork,
     shortenAddress,
   } from "./utils";
+  import '@fontsource-variable/noto-emoji';
 
   configureWagmi({
     walletconnect: true,
