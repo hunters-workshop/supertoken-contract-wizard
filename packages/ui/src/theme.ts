@@ -48,5 +48,8 @@ export const theme = {
       800: '#c2410ccc',
       900: '#c2410ce0',
     },
-  }
+  },
+  fonts: {
+    emoji: 'Noto Emoji Variable',
+  },
 }

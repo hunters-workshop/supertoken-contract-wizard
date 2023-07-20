@@ -490,6 +490,10 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
+"@fontsource-variable/noto-emoji@^5.0.5":
+  version "5.0.5"
+  resolved "https://registry.yarnpkg.com/@fontsource-variable/noto-emoji/-/noto-emoji-5.0.5.tgz#4ac20ef5e9bcbc2aaaa1e8e00a24b5207548eb4e"
+
 "@ganache/console.log@0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@ganache/console.log/-/console.log-0.3.0.tgz#be7bb0875e883d7c219c3543cc7e854203c5233d"

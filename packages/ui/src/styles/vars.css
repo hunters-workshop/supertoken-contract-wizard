@@ -3,6 +3,7 @@
   --sans-serif: system-ui, sans-serif;
   --monospace: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
 
+  --emojiFont: 'Noto Emoji Variable', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Sans Emoji', 'Android Emoji', EmojiSymbols;
   /* Colors */
 
   --text-color: #333333;
