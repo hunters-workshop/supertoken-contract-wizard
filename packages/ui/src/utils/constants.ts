@@ -1,4 +1,4 @@
-const BACKEND_URL = 'https://superfluid-backend.huntersworkshop.xyz';
+const BACKEND_URL = 'https://superfluid-backend.luxumbra.dev';
 
 enum NetworkId {
   Mainnet = 1,
