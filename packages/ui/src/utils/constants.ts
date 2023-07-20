@@ -1,4 +1,4 @@
-const BACKEND_URL = 'http://localhost:3333';
+const BACKEND_URL = 'https://superfluid-backend.huntersworkshop.xyz';
 
 enum NetworkId {
   Mainnet = 1,
