@@ -32,6 +32,21 @@ Then place `<oz-wizard></oz-wizard>` in the body where you want Contracts Wizard
 
 Optionally focus on specific tab with the `data-tab` attribute as in `<oz-wizard data-tab="PURE"></oz-wizard>`.
 
+## Supported Networks
+
+```ts
+enum NetworkId {
+  Mainnet = 1,
+  GnosisChain = 100,
+  Polygon = 137,
+  Optimism = 10,
+  Arbitrum = 42161,
+  Avalanche = 43114,
+  BinanceSmartChain = 56,
+  Celo = 42220,
+}
+```
+
 ## API
 
 The following describes how to use the Contracts Wizard programmatic API in your own applications.
