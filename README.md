@@ -1,13 +1,9 @@
-# [OpenZeppelin Contracts Wizard](https://wizard.openzeppelin.com)
-
-[![Solidity NPM Package](https://img.shields.io/npm/v/@superfluid-wizard/core?color=%234e5de4&label=%40openzeppelin%2Fwizard)](https://www.npmjs.com/package/@superfluid-wizard/core)
-[![Cairo NPM Package](https://img.shields.io/npm/v/@superfluid-wizard/core-cairo?color=%23e55233&label=%40openzeppelin%2Fwizard-cairo)](https://www.npmjs.com/package/@superfluid-wizard/core-cairo)
+# [Supertoken Contracts Wizard](https://supertoken-wizard.huntersworkshop.xyz)
 
 Contracts Wizard is a web application to interactively build a contract out of components from Superfluid's Supertoken Smart Contracts. Select the kind of contract that you want, set your parameters and desired features, and the Wizard will generate all of the code necessary. The resulting code is ready to be compiled and deployed, or it can serve as a starting point and customized further with application specific logic.
 
 From the app you can copy the raw code, compile it & copy the artefacts and even deploy it to a a range of blockchain networks.
 
-[![](./screenshot.png)](https://wizard.openzeppelin.com/)
 [![Supertoken wizard](image.png)](https://supertoken-wizard.huntersworkshop.xyz)
 
 ## Development
